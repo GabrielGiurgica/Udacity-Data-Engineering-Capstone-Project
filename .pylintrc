@@ -1,0 +1,3 @@
+extension-pkg-whitelist=pyspark
+generated-members=pyspark.*
+ignored-modules=pyspark.sql.functions
