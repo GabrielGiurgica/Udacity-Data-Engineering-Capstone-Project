@@ -7,6 +7,7 @@ from pyspark.sql import SparkSession, Window
 from pyspark.sql import functions as F
 from pyspark.sql.types import ByteType, FloatType, IntegerType, StringType
 
+from utils.check_data import check_data_quality
 from utils.config import get_config
 from utils.process_data import convert_to_datetime, extract_region
 from utils.read_data import (
@@ -54,6 +55,8 @@ def process_temperature_evolution_foreign_country(
         F.avg("AverageTemperatureUncertainty").alias("average_temperature_uncertainty"),
     )
     temp_df = temp_df.withColumn("temperature_id", F.monotonically_increasing_id())
+
+    check_data_quality(temp_df, "temperature_id", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
     write_table_data(temp_df, output_dir_path, table_name)
@@ -78,6 +81,8 @@ def process_demographic(
         .cast(FloatType())
         .alias("average_household_size"),
     )
+
+    check_data_quality(demog_df, "state_code", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
     write_table_data(demog_df, output_dir_path, table_name)
@@ -132,6 +137,8 @@ def process_world_airports(
         F.split(F.col("coordinates"), ", ")[1].cast(FloatType()).alias("latitude"),
         F.split(F.col("coordinates"), ", ")[0].cast(FloatType()).alias("longitude"),
     )
+
+    check_data_quality(airport_df, "airport_id", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
     write_table_data(airport_df, output_dir_path, table_name)
@@ -144,6 +151,8 @@ def process_us_states(
     table_name = "us_states"
 
     us_states_df = read_us_states_list(spark)
+
+    check_data_quality(us_states_df, "state_code", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
     write_table_data(us_states_df, output_dir_path, table_name)
@@ -173,6 +182,8 @@ def process_visa(
     # Add unique IDs
     window_visa = Window.orderBy("visa_type")
     dim_visa_df = dim_visa_df.withColumn("visa_id", F.row_number().over(window_visa))
+
+    check_data_quality(dim_visa_df, "visa_id", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
     write_table_data(dim_visa_df, output_dir_path, table_name)
@@ -187,10 +198,12 @@ def process_applicant_origin_country(
     values = read_origin_countries(input_dir_path)
 
     labels = ["origin_country_code", "origin_country"]
-    dim_appl_org_country = spark.createDataFrame(values, labels)
+    dim_appl_org_country_df = spark.createDataFrame(values, labels)
+
+    check_data_quality(dim_appl_org_country_df, "origin_country_code", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
-    write_table_data(dim_appl_org_country, output_dir_path, table_name)
+    write_table_data(dim_appl_org_country_df, output_dir_path, table_name)
 
 
 def process_status_flag(
@@ -210,12 +223,14 @@ def process_status_flag(
 
     # Add unique IDs
     window_arriaval = Window.orderBy("arriaval_flag")
-    dim_status_flag = dim_status_flag.withColumn(
+    dim_status_flag_df = dim_status_flag.withColumn(
         "status_flag_id", F.row_number().over(window_arriaval)
     )
+
+    check_data_quality(dim_status_flag_df, "status_flag_id", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
-    write_table_data(dim_status_flag, output_dir_path, table_name)
+    write_table_data(dim_status_flag_df, output_dir_path, table_name)
 
 
 def process_admission_port(
@@ -227,10 +242,12 @@ def process_admission_port(
     values = read_i94_descr("i94port", input_dir_path, clean_descr=True).items()
 
     labels = ["admission_port_code", "admission_port"]
-    dim_admission_port = spark.createDataFrame(values, labels)
+    dim_admission_port_df = spark.createDataFrame(values, labels)
+
+    check_data_quality(dim_admission_port_df, "admission_port_code", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
-    write_table_data(dim_admission_port, output_dir_path, table_name)
+    write_table_data(dim_admission_port_df, output_dir_path, table_name)
 
 
 def process_arriaval_mode(
@@ -256,6 +273,8 @@ def process_arriaval_mode(
     arriaval_mode_df = arriaval_mode_df.withColumn(
         "arriaval_mode_id", F.row_number().over(window_arriaval_mode)
     )
+
+    check_data_quality(arriaval_mode_df, "arriaval_mode_id", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
     write_table_data(arriaval_mode_df, output_dir_path, table_name)
@@ -295,34 +314,11 @@ def process_date(
         F.dayofmonth(F.col("date")).alias("day_of_month"),
         F.dayofyear(F.col("date")).alias("day_of_year"),
     )
+
+    check_data_quality(date_df, "date", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
     write_table_data(date_df, output_dir_path, table_name)
-
-
-def process_status_flag(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
-    """Create/Recreate status_flag dimension table."""
-    table_name = "status_flag"
-
-    imm_df = read_immigration_sas(spark)
-
-    status_flag_df = imm_df.select(
-        F.col("entdepa").alias("arriaval_flag"),
-        F.col("entdepd").alias("departure_flag"),
-        F.col("entdepu").alias("update_flag"),
-        F.col("matflag").alias("match_flag"),
-    ).dropDuplicates()
-
-    # Add unique IDs
-    window_arriaval = Window.orderBy("arriaval_flag")
-    status_flag_df = status_flag_df.withColumn(
-        "status_flag_id", F.row_number().over(window_arriaval)
-    )
-    print(f"Data for {table_name} table was successfully processed.")
-
-    write_table_data(status_flag_df, output_dir_path, table_name)
 
 
 def process_immigrant_application(
@@ -384,6 +380,8 @@ def process_immigrant_application(
         F.col("i94cit").alias("birth_country"),
         F.col("i94res").alias("residence_country"),
     )
+
+    check_data_quality(imm_appl_df, "file_id", table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
     write_table_data(imm_appl_df, output_dir_path, table_name)
@@ -407,10 +405,14 @@ def upload_to_s3(config: ConfigParser, data_path: str) -> None:
     bucket = s3.Bucket(s3_bucket)
 
     for subdir, dirs, files in os.walk(data_path):
+        if not files:
+            continue
         for file in files:
             full_path = os.path.join(subdir, file)
             with open(full_path, "rb") as data:
                 bucket.put_object(Key=full_path[len(data_path) + 1 :], Body=data)
+        print(f"{subdir} table was succesfully loaded into {s3_bucket}.")
+    print(f"\nAll the tables were succesfully loaded into {s3_bucket}.")
 
 
 def main():
@@ -438,7 +440,7 @@ def main():
     )
     for process_tab in process_tables:
         process_tab(spark, input_data, output_data)
-        print("/n")
+        print("")
 
     upload_to_s3(config, data_path=output_data)
 
