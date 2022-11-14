@@ -1,11 +1,12 @@
 # noqa: D100
+
 import os
 from configparser import ConfigParser
 
 import boto3
 from pyspark.sql import SparkSession, Window
 from pyspark.sql import functions as F
-from pyspark.sql.types import ByteType, FloatType, IntegerType, StringType
+from pyspark.sql.types import FloatType, IntegerType, StringType
 
 from utils.check_data import check_data_quality
 from utils.config import get_config
@@ -28,9 +29,7 @@ from utils.write_data import write_table_data
 def create_spark_session() -> SparkSession:
     """Get or create a spark session."""
     spark = (
-        SparkSession.builder.config(
-            "spark.jars.repositories", "https://repos.spark-packages.org/"
-        )
+        SparkSession.builder.config("spark.jars.repositories", "https://repos.spark-packages.org/")
         .config("spark.jars.packages", "saurfang:spark-sas7bdat:2.0.0-s_2.11")
         .enableHiveSupport()
         .getOrCreate()
@@ -47,9 +46,7 @@ def process_temperature_evolution_foreign_country(
 
     temp_df = read_temperature_csv(spark, input_dir_path).dropna()
 
-    temp_df = temp_df.withColumn("year", F.year("dt")).withColumn(
-        "month", F.month("dt")
-    )
+    temp_df = temp_df.withColumn("year", F.year("dt")).withColumn("month", F.month("dt"))
     temp_df = temp_df.groupBy([F.col("Country").alias("country"), "year", "month"]).agg(
         F.avg("AverageTemperature").alias("average_temperature"),
         F.avg("AverageTemperatureUncertainty").alias("average_temperature_uncertainty"),
@@ -62,9 +59,7 @@ def process_temperature_evolution_foreign_country(
     write_table_data(temp_df, output_dir_path, table_name)
 
 
-def process_demographic(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_demographic(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate demographic dimension table."""
     table_name = "demographic"
 
@@ -77,9 +72,7 @@ def process_demographic(
         F.sum("Number of Veterans").cast(IntegerType()).alias("number_of_veterans"),
         F.sum("Foreign-born").cast(IntegerType()).alias("foregin_born"),
         F.sum("Median Age").cast(FloatType()).alias("median_age"),
-        F.sum("Average Household Size")
-        .cast(FloatType())
-        .alias("average_household_size"),
+        F.sum("Average Household Size").cast(FloatType()).alias("average_household_size"),
     )
 
     check_data_quality(demog_df, "state_code", table_name)
@@ -88,9 +81,7 @@ def process_demographic(
     write_table_data(demog_df, output_dir_path, table_name)
 
 
-def process_world_airports(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_world_airports(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate world_airports dimension table."""
     table_name = "world_airports"
 
@@ -99,9 +90,7 @@ def process_world_airports(
     country_df = read_country_list(spark)
     airport_df = read_airport_csv(spark, input_dir_path)
 
-    airport_df = airport_df.where(
-        F.col("type").isin(["small_airport", "medium_airport", "large_airport"])
-    )
+    airport_df = airport_df.where(F.col("type").isin(["small_airport", "medium_airport", "large_airport"]))
     airport_df = (
         airport_df.join(
             F.broadcast(continent_df),
@@ -144,9 +133,7 @@ def process_world_airports(
     write_table_data(airport_df, output_dir_path, table_name)
 
 
-def process_us_states(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_us_states(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate us_states dimension table."""
     table_name = "us_states"
 
@@ -158,9 +145,7 @@ def process_us_states(
     write_table_data(us_states_df, output_dir_path, table_name)
 
 
-def process_visa(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_visa(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate us_states dimension table."""
     table_name = "visa"
 
@@ -170,14 +155,11 @@ def process_visa(
     dim_visa_df = imm_df.select(
         F.col("visatype").alias("visa_type"),
         F.col("visapost").alias("visa_issuer"),
-        F.col("I94VISA")
-        .alias("visa_category_code")
-        .cast(IntegerType())
-        .cast(StringType()),
+        F.col("I94VISA").alias("visa_category_code").cast(IntegerType()).cast(StringType()),
     ).dropDuplicates()
-    dim_visa_df = dim_visa_df.withColumn(
-        "visa_category", F.col("visa_category_code")
-    ).replace(visa_category, subset="visa_category")
+    dim_visa_df = dim_visa_df.withColumn("visa_category", F.col("visa_category_code")).replace(
+        visa_category, subset="visa_category"
+    )
 
     # Add unique IDs
     window_visa = Window.orderBy("visa_type")
@@ -189,9 +171,7 @@ def process_visa(
     write_table_data(dim_visa_df, output_dir_path, table_name)
 
 
-def process_applicant_origin_country(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_applicant_origin_country(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate applicant_origin_country dimension table."""
     table_name = "applicant_origin_country"
 
@@ -206,9 +186,7 @@ def process_applicant_origin_country(
     write_table_data(dim_appl_org_country_df, output_dir_path, table_name)
 
 
-def process_status_flag(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_status_flag(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate status_flag dimension table."""
     table_name = "status_flag"
 
@@ -223,9 +201,7 @@ def process_status_flag(
 
     # Add unique IDs
     window_arriaval = Window.orderBy("arriaval_flag")
-    dim_status_flag_df = dim_status_flag.withColumn(
-        "status_flag_id", F.row_number().over(window_arriaval)
-    )
+    dim_status_flag_df = dim_status_flag.withColumn("status_flag_id", F.row_number().over(window_arriaval))
 
     check_data_quality(dim_status_flag_df, "status_flag_id", table_name)
     print(f"Data for {table_name} table was successfully processed.")
@@ -233,9 +209,7 @@ def process_status_flag(
     write_table_data(dim_status_flag_df, output_dir_path, table_name)
 
 
-def process_admission_port(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_admission_port(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate admission_port dimension table."""
     table_name = "admission_port"
 
@@ -250,9 +224,7 @@ def process_admission_port(
     write_table_data(dim_admission_port_df, output_dir_path, table_name)
 
 
-def process_arriaval_mode(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_arriaval_mode(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate arriaval_mode dimension table."""
     table_name = "arriaval_mode"
 
@@ -264,15 +236,11 @@ def process_arriaval_mode(
         F.col("airline"),
         F.col("fltno").alias("flight_number"),
     ).dropDuplicates()
-    arriaval_mode_df = arriaval_mode_df.withColumn("mode", F.col("mode_code")).replace(
-        mode, subset="mode"
-    )
+    arriaval_mode_df = arriaval_mode_df.withColumn("mode", F.col("mode_code")).replace(mode, subset="mode")
 
     # Add unique IDs
     window_arriaval_mode = Window.orderBy("mode_code")
-    arriaval_mode_df = arriaval_mode_df.withColumn(
-        "arriaval_mode_id", F.row_number().over(window_arriaval_mode)
-    )
+    arriaval_mode_df = arriaval_mode_df.withColumn("arriaval_mode_id", F.row_number().over(window_arriaval_mode))
 
     check_data_quality(arriaval_mode_df, "arriaval_mode_id", table_name)
     print(f"Data for {table_name} table was successfully processed.")
@@ -280,20 +248,15 @@ def process_arriaval_mode(
     write_table_data(arriaval_mode_df, output_dir_path, table_name)
 
 
-def process_date(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_date(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate date dimension table."""
     table_name = "date"
+    col_id = table_name
 
     imm_df = read_immigration_sas(spark)
 
-    admission_date_df = imm_df.select(
-        F.to_date(F.col("dtaddto"), "MMddyyyy").alias("date")
-    ).distinct()
-    added_file_date_df = imm_df.select(
-        F.to_date(F.col("dtadfile"), "yyyyMMdd")
-    ).distinct()
+    admission_date_df = imm_df.select(F.to_date(F.col("dtaddto"), "MMddyyyy").alias(col_id)).distinct()
+    added_file_date_df = imm_df.select(F.to_date(F.col("dtadfile"), "yyyyMMdd")).distinct()
     arrival_date_df = imm_df.select(convert_to_datetime(F.col("arrdate"))).distinct()
     departure_date_df = imm_df.select(convert_to_datetime(F.col("depdate"))).distinct()
     date_df = (
@@ -305,25 +268,23 @@ def process_date(
     )
 
     date_df = date_df.select(
-        F.col("date"),
-        F.year(F.col("date")).alias("year"),
-        F.quarter(F.col("date")).alias("quarter"),
-        F.month(F.col("date")).alias("month"),
-        F.weekofyear(F.col("date")).alias("week_of_year"),
-        F.dayofweek(F.col("date")).alias("day_of_week"),
-        F.dayofmonth(F.col("date")).alias("day_of_month"),
-        F.dayofyear(F.col("date")).alias("day_of_year"),
-    )
+        F.col(col_id),
+        F.year(F.col(col_id)).alias("year"),
+        F.quarter(F.col(col_id)).alias("quarter"),
+        F.month(F.col(col_id)).alias("month"),
+        F.weekofyear(F.col(col_id)).alias("week_of_year"),
+        F.dayofweek(F.col(col_id)).alias("day_of_week"),
+        F.dayofmonth(F.col(col_id)).alias("day_of_month"),
+        F.dayofyear(F.col(col_id)).alias("day_of_year"),
+    ).na.drop(subset=[col_id])
 
-    check_data_quality(date_df, "date", table_name)
+    check_data_quality(date_df, col_id, table_name)
     print(f"Data for {table_name} table was successfully processed.")
 
     write_table_data(date_df, output_dir_path, table_name)
 
 
-def process_immigrant_application(
-    spark: SparkSession, input_dir_path: str, output_dir_path: str
-) -> None:
+def process_immigrant_application(spark: SparkSession, input_dir_path: str, output_dir_path: str) -> None:
     """Create/Recreate immigrant_application dimension table."""
     table_name = "immigrant_application"
 
@@ -398,9 +359,7 @@ def upload_to_s3(config: ConfigParser, data_path: str) -> None:
     secret = config["AWS"]["SECRET"]
     s3_bucket = config["AWS"]["S3"]
 
-    session = boto3.Session(
-        aws_access_key_id=key, aws_secret_access_key=secret, region_name="us-east-1"
-    )
+    session = boto3.Session(aws_access_key_id=key, aws_secret_access_key=secret, region_name="us-east-1")
     s3 = session.resource("s3")
     bucket = s3.Bucket(s3_bucket)
 

@@ -84,5 +84,5 @@ If the database starts to be used intensively, I would consider moving the data 
     ├── utils                               # Contains files with functions used in the ETL pipeline
     ├── data_exploration.ipynb              # Used to explore data and prototype ETL pipeline.
     ├── dl.cfg                              # The credentials and config used to manage the AWS resources          
-    ├── etl.py                              # Final form of ETL pipeline
+    ├── etl.py                              # Code for the ETL pipeline
     └── README.md

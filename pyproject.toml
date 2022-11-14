@@ -1,0 +1,19 @@
+[tool.isort]
+line_length = 120
+profile = "black" 
+
+[tool.black]
+line-length=120
+
+[tool.pydocstyle]
+convention = "numpy"
+
+[tool.pylint.format]
+max-line-length = 120
+good-names = ["df", "s3", "DataFrame"]
+disable = "C0411, C0114, C0116"
+fail-under = 9.5
+fail-on = ["F", "E"]
+extension-pkg-whitelist=pyspark
+generated-members=pyspark.*
+ignored-modules=pyspark.sql.functions
