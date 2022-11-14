@@ -36,7 +36,7 @@ As mentioned in the previous section, 7 data sources are used in this project. 4
 ## Data Model
 
 <p align="center">
-  <src="images/model_schema.png">
+  <img width="712" height="618" src="images/model_schema.png">
 </p>  
 
 As can be seen from the image, we have used a star schema as a way of modeling the data, because the ultimate goal of the data is to load it into a data warehouse that will be used for analytics. A brief description of the tables is reproduced in the following:  
@@ -76,7 +76,7 @@ For this situation, the ETL can be refactor to work with [Apache Airflow](https:
 
 If the database starts to be used intensively, I would consider moving the data to [Amazon Redshift](https://aws.amazon.com/redshift/).
 
-### Structure of the project
+## Structure of the project
 
     ├── images                              # The folder where the images used in README.md are saved
     ├── processed_data                      # The folder where the processed data is stored.
