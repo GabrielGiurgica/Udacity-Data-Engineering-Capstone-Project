@@ -379,9 +379,9 @@ def main():
 
     spark = create_spark_session()
 
-    input_data = "raw_data"
-    output_data = "processed_data"
-    config = get_config("df.cfg")
+    input_dir = "raw_data"
+    output_dir = "processed_data"
+    config = get_config("dl.cfg")
 
     process_tables = (
         process_temperature_evolution_foreign_country,
@@ -398,10 +398,10 @@ def main():
         process_immigrant_application,
     )
     for process_tab in process_tables:
-        process_tab(spark, input_data, output_data)
+        process_tab(spark, input_dir, output_dir)
         print("")
 
-    upload_to_s3(config, data_path=output_data)
+    upload_to_s3(config, data_path=output_dir)
 
 
 if __name__ == "__main__":

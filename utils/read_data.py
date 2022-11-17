@@ -153,7 +153,7 @@ def read_i94_descr(
         label_mapping = _clean_description(label_mapping)
 
     print(
-        "Attribute description {attribute_name} was successfully read from I94_SAS_Labels_Descriptions.SAS."
+        f"Attribute description {attribute_name} was successfully read from I94_SAS_Labels_Descriptions.SAS."
     )
     return label_mapping
 
@@ -170,7 +170,5 @@ def read_origin_countries(
     attr_name = "i94res"
     data = read_i94_descr(attr_name, dir_path=dir_path, clean_descr=True)  # OR "i94cit"
     data.update({"582": "MEXICO"})
-    print(
-        "Attribute description {attr_name} was successfully read from I94_SAS_Labels_Descriptions.SAS."
-    )
+
     return data.items()
