@@ -325,8 +325,8 @@ def process_immigrant_application(spark: SparkSession, input_dir_path: str, outp
         F.col("cicid").alias("file_id").cast(IntegerType()),
         F.col("insnum").alias("ins_number").cast(IntegerType()),
         F.col("admnum").alias("admission_number").cast(IntegerType()),
-        F.col("i94bir").alias("applicant_age"),
-        F.col("biryear").alias("applicant_birth_year"),
+        F.col("i94bir").alias("applicant_age").cast(IntegerType()),
+        F.col("biryear").alias("applicant_birth_year").cast(IntegerType()),
         F.col("gender"),
         F.col("occup").alias("occupation"),
         F.col("visa_id"),
@@ -336,10 +336,10 @@ def process_immigrant_application(spark: SparkSession, input_dir_path: str, outp
         F.col("arriaval_mode_id"),
         convert_to_datetime(F.col("arrdate")).alias("arriaval_date"),
         convert_to_datetime(F.col("depdate")).alias("departure_date"),
-        F.to_date(F.col("dtaddto"), "MMddyyyy").alias("limit_date"),
+        F.to_date(F.col("dtaddto"),"MMddyyyy").alias("limit_date"),
         F.col("status_flag_id"),
-        F.col("i94cit").alias("birth_country"),
-        F.col("i94res").alias("residence_country"),
+        F.col("i94cit").alias("birth_country").cast(IntegerType()).cast(StringType()),
+        F.col("i94res").alias("residence_country").cast(IntegerType()).cast(StringType())
     )
 
     check_data_quality(imm_appl_df, "file_id", table_name)
