@@ -71,8 +71,8 @@ def process_demographic(spark: SparkSession, input_dir_path: str, output_dir_pat
         F.sum("Female Population").cast(IntegerType()).alias("female_population"),
         F.sum("Number of Veterans").cast(IntegerType()).alias("number_of_veterans"),
         F.sum("Foreign-born").cast(IntegerType()).alias("foregin_born"),
-        F.sum("Median Age").cast(FloatType()).alias("median_age"),
-        F.sum("Average Household Size").cast(FloatType()).alias("average_household_size"),
+        F.avg("Median Age").cast(FloatType()).alias("median_age"),
+        F.avg("Average Household Size").cast(FloatType()).alias("average_household_size"),
     )
 
     check_data_quality(demog_df, "state_code", table_name)
