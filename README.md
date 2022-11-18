@@ -56,9 +56,9 @@ The schema was created using [dbdesigner](https://app.dbdesigner.net/). The SQL 
 - **admission_port**: is a dimension table whose data source is the description file in the I94 Immigration Data dataset. It contains the code and information about the admission port through which the immigrant passed.
 - **arriaval_mode**: is a table of dimensions whose data source is the I94 Immigration Data dataset and its description file. It contains information about how the immigrant arrived in the US.
 - **date**: is a dimension table whose data source the I94 Immigration Data dataset. It contains all possible data from the columns in the source dataset.
-- **immigran_application**: is the fact table in the data model. It has as a data source both the I94 Immigration Dat dataset and the visa, status_flag and arriaval_mode tables from which it takes the id columns. This table contains information on the application submitted by the immigrant.
+- **immigran_application**: is the fact table in the data model. It has as a data source both the I94 Immigration Data dataset and the visa, status_flag and arriaval_mode tables from which it takes the id columns. This table contains information on the application submitted by the immigrant.
 
-More details related to the columns in the tables can be found in [docs/data_dicionary.md](docs/data_dicionary.md).
+More details related to the columns in the tables can be found in [docs/data_dictionary.md](docs/data_dictionary.md).
 
 ## ETL Pipeline
 
