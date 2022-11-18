@@ -19,7 +19,12 @@ _________________
 
 ## Project Summary
 
-This project aims to create an ETL pipeline that takes data from 7 sources, processes them and uploads them to Amazon S3 to be analyzed later. The resulting data are used as a data source for a Data Warehouse whose purpose is to analyze the immigration phenomenon in the US.
+This project aims to create an ETL pipeline that takes data from 7 sources, processes them and uploads them to a data warehouse. The data warehouse facilitates the analysis of the US immigration phenomenon using Business Intelligence applications. With the help of the data stored in it, it is possible to identify:
+- if there is any correlation between the phenomenon of global warming and the origin of immigrants
+- if there is an increase/decrease in immigrants from certain states
+- which are the main states where immigrants go
+- what is the age distribution of immigrants
+- etc.
 
 This repository is the result of completing the [Data Engineering Nanodegree](https://www.udacity.com/course/data-engineer-nanodegree--nd027) on Udacity. So the code was tested in Project Workspace on Udacity.
 
@@ -37,10 +42,10 @@ As mentioned in the previous section, 7 data sources are used in this project. 4
 ## Data Model
 
 <p align="center">
-  <img width="712" height="618" src="images/model_schema.png">
+  <img width="712" height="618" src="docs/model_schema.png">
 </p>  
 
-As can be seen from the image, we have used a star schema as a way of modeling the data, because the ultimate goal of the data is to load it into a data warehouse that will be used for analytics. A brief description of the tables is reproduced in the following:  
+The schema was created using [dbdesigner](https://app.dbdesigner.net/). The SQL code to create the tables is in [docs/immigration_db_postgres_create.sql](docs/immigration_db_postgres_create.sql). As can be seen from the image, a star schema has been used as a way to model the data because the ultimate goal of the data is to analyze it using Business Intelligence applications. A brief description of the tables is reproduced in the following:  
 - **country_temperature_evolution**: is a dimension table whose data source is the World Temperature Data dataset. It stores the average monthly temperatures of each country from 1743 to 2013.
 - **demographic**: is a dimension table whose data source is the U.S. City Demographic Data dataset. It contains population data for each US state.
 - **world_airports**: is a dimension table whose data sources are the Airport Code Table and Continent Codes datasets. It contains data about all airports in the world.
@@ -53,25 +58,41 @@ As can be seen from the image, we have used a star schema as a way of modeling t
 - **date**: is a dimension table whose data source the I94 Immigration Data dataset. It contains all possible data from the columns in the source dataset.
 - **immigran_application**: is the fact table in the data model. It has as a data source both the I94 Immigration Dat dataset and the visa, status_flag and arriaval_mode tables from which it takes the id columns. This table contains information on the application submitted by the immigrant.
 
+More details related to the columns in the tables can be found in [docs/data_dicionary.md](docs/data_dicionary.md).
+
 ## ETL Pipeline
 
-The ETL pipeline is divided into the processing part and the data saving to S3 part. 
-1. In the processing part, each table in the data model follows the following process to be created and saved:
-    1. Raw data is read.
-    2. The data is processed.
-    3. The correctness of the processed data is checked..
-    4. Save the processed data in the output folder.
-2. The tables are taken from the output file and saved in the S3 bucket. In order for this step to be run successfully, the **dl.cfg** file must be completed. It is recommended that the KEY and SECRET fields have the values of an IAM User that has only AmazonS3FullAccess policy attached.
+<p align="center">
+  <img width="712" height="586" src="docs/etl_design.png">
+</p> 
+
+As can be seen in the previous image, the pipeline takes the source data from 3 different places, processes the data and saves it locally in parquet format. Once all the data has been processed, they are uploaded to [Amazon S3](https://aws.amazon.com/s3/). Each table is processed following the following steps:
+1. Raw data is read.
+2. The data is transformed.
+3. The correctness of the processed data is checked.
+4. The processed data are saved in parquet format in the output folder.
+
+The main tools used in this project are:
+- [Apache Spark](https://spark.apache.org/docs/latest/api/python/): was chosen for data processing, regardless of their size.
+- [Pandas](https://pandas.pydata.org/): was chosen for the ease with which HTML tables are read.
+- [Amazon S3](https://aws.amazon.com/s3/): it was chosen because it is highly scalable, reliable, fast and inexpensive data storage.
+  
+To run the pipeline, the following steps must be followed:
+1. Complete **dl.cfg** configuration file. It is recommended that the KEY and SECRET fields have the values of an IAM User that has only [AmazonS3FullAccess policy](https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-iam-awsmanpol.html) attached. Be careful not to put the entered values between single or double quotes.
+2. Run the command from the project root.
+```
+python -m etl
+```
 
 ## Other Scenarios
 
 #### The data was increased by 100x.
 
-For such a scenario, I would consider using an [Amazon EMR](https://aws.amazon.com/emr/) to run the ETL, and upload the data directly to the [Amazon S3](https://aws.amazon.com/s3/). For the S3 field, it is necessary to pass the S3 bucket name. For example gabriel-s3-capstone. Be careful not to put the entered values between single or double quotes.
+For such a scenario, I would consider using an [Amazon EMR](https://aws.amazon.com/emr/) to run the ETL, and upload the data directly to the [Amazon S3](https://aws.amazon.com/s3/). For the S3 field, it is necessary to pass the S3 bucket name. Besides this, I would partition the boards. For example, I would partition the *country_temperature_evolution* table according to the country.
 
 #### The data populates a dashboard that must be updated on a daily basis by 7am every day.
 
-For this situation, the ETL can be refactor to work with [Apache Airflow](https://airflow.apache.org/).
+For this situation, the ETL can be refactor to work with [Apache Airflow](https://airflow.apache.org/), because it would be much easier to automate the execution of the pipeline.
 
 #### The database needed to be accessed by 100+ people.
 
