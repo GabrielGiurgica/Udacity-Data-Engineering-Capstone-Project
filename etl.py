@@ -38,11 +38,11 @@ def create_spark_session() -> SparkSession:
     return spark
 
 
-def process_temperature_evolution_foreign_country(
+def process_country_temperature_evolution(
     spark: SparkSession, input_dir_path: str, output_dir_path: str
 ) -> None:
-    """Create/Recreate temperature_evolution_foreign_country dimension table."""
-    table_name = "temperature_evolution_foreign_country"
+    """Create/Recreate country_temperature_evolution dimension table."""
+    table_name = "country_temperature_evolution"
 
     temp_df = read_temperature_csv(spark, input_dir_path).dropna()
 
@@ -384,7 +384,7 @@ def main():
     config = get_config("dl.cfg")
 
     process_tables = (
-        process_temperature_evolution_foreign_country,
+        process_country_temperature_evolution,
         process_demographic,
         process_world_airports,
         process_us_states,
