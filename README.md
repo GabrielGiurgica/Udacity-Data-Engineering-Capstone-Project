@@ -104,6 +104,7 @@ If the database starts to be used intensively, I would consider moving the data 
     ├── processed_data                      # The folder where the processed data is stored.
     ├── raw_data                            # The folder where the raw data is stored.
     ├── utils                               # Contains files with functions used in the ETL pipeline.
+    ├── data_exploration.ipynb              # Jupyter notebook used for data exploration.
     ├── dl.cfg                              # The credentials and config used to manage the AWS resources.
     ├── etl.py                              # Code for the ETL pipeline.
     ├── LICENSE                             # Contains information about the project license
