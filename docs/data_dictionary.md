@@ -2,7 +2,7 @@
 
 ## immigran_application Table
 
-It is the fact table in the data model. It has as a data source both the I94 Immigration Data dataset and the visa, status_flag and arriaval_mode tables from which it takes the id columns. This table contains information about applications submitted by immigrants.
+It is the fact table in the data model. It has as a data source both the I94 Immigration Data dataset and the visa, status_flag and arrival_mode tables from which it takes the id columns. This table contains information about applications submitted by immigrants.
 
 | Column               | Descritpion                                                                                        |
 |----------------------|----------------------------------------------------------------------------------------------------|
@@ -16,9 +16,9 @@ It is the fact table in the data model. It has as a data source both the I94 Imm
 | visa_id              | The ID that indicates the visa information in the visa table.                                      |
 | application_date     | The date the application was added to the I94 files.                                               |
 | admission_port_code  | Port of admission                                                                                  |
-| arriaval_state_code  | The US state where the applicant arrived.                                                          |
-| arriaval_mode_id     | The ID indicating information about how the applicant arrived in the US in the arrival_mode table. |
-| arriaval_date        | Date of applicant's arrival to the US.                                                             |
+| arrival_state_code  | The US state where the applicant arrived.                                                          |
+| arrival_mode_id     | The ID indicating information about how the applicant arrived in the US in the arrival_mode table. |
+| arrival_date        | Date of applicant's arrival to the US.                                                             |
 | departure_date       | Date of applicant's departure to the US.                                                           |
 | limit_date           | The deadline until which the applicant has the right to stay in the USA.                           |
 | status_flag_id       | The ID indicating information about the status of various flags in the status_flag table.          |
@@ -105,7 +105,7 @@ It is a dimension table whose data source the I94 Immigration Data dataset. It c
 
 | Column         | Descritpion                                |
 |----------------|--------------------------------------------|
-| arriaval_flag  | 1 character indicating the arrival flag.   |
+| arrival_flag  | 1 character indicating the arrival flag.   |
 | departure_flag | 1 character indicating the departure flag. |
 | update_flag    | 1 character indicating the update flag.    |
 | match_flag     | 1 character indicating the match flag.     |
@@ -126,13 +126,13 @@ It is a dimension table whose data source the I94 Immigration Data dataset. It c
 | day_of_month | Day number of the month.              |
 | day_of_year  | Day number of the year.               |
 
-## arriaval_mode Table
+## arrival_mode Table
 
 It is a table of dimensions whose data source is the I94 Immigration Data dataset and its description file. It contains information about how the immigrant arrived in the US.
 
 | Column           | Descritpion                                                                                   |
 |------------------|-----------------------------------------------------------------------------------------------|
-| arriaval_mode_id | A unique ID                                                                                   |
+| arrival_mode_id  | A unique ID                                                                                   |
 | mode_code        | A code indicating the mode of transport.                                                      |
 | mode             | Description of the code indicating the mode of transport.                                     |
 | airline          | A code consisting of 1 to 3 characters representing the airline code used to arrive in U.S.   |
