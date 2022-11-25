@@ -54,9 +54,9 @@ The schema was created using [dbdesigner](https://app.dbdesigner.net/). The SQL 
 - **applicant_origin_country**: is a dimension table whose data source is the description file in the I94 Immigration Data dataset. It contains a 3-digit code and the name of each country from which an immigrant could come.
 - **status_flag**: is a dimension table whose data source the I94 Immigration Data dataset. It contains the one-letter status for different stages that the immigrant went through.
 - **admission_port**: is a dimension table whose data source is the description file in the I94 Immigration Data dataset. It contains the code and information about the admission port through which the immigrant passed.
-- **arriaval_mode**: is a table of dimensions whose data source is the I94 Immigration Data dataset and its description file. It contains information about how the immigrant arrived in the US.
-- **date**: is a dimension table whose data source the I94 Immigration Data dataset. It contains all possible data from the columns in the source dataset.
-- **immigran_application**: is the fact table in the data model. It has as a data source both the I94 Immigration Data dataset and the visa, status_flag and arriaval_mode tables from which it takes the id columns. This table contains information on the application submitted by the immigrant.
+- **arrival_mode**: is a table of dimensions whose data source is the I94 Immigration Data dataset and its description file. It contains information about how the immigrant arrived in the US.
+- **date**: is a dimension table whose data source the I94 Immigration Data dataset. It contains all possible dates from the columns in the source dataset.
+- **immigran_application**: is the fact table in the data model. It has as a data source both the I94 Immigration Data dataset and the *visa*, *status_flag* and *arrival_mode* tables from which it takes the id columns. This table contains information on the application submitted by the immigrants.
 
 More details related to the columns in the tables can be found in [docs/data_dictionary.md](docs/data_dictionary.md).
 
@@ -66,7 +66,7 @@ More details related to the columns in the tables can be found in [docs/data_dic
   <img width="712" height="586" src="docs/etl_design.png">
 </p> 
 
-As can be seen in the previous image, the pipeline takes the source data from 3 different places, processes the data and saves it locally in parquet format. Once all the data has been processed, they are uploaded to [Amazon S3](https://aws.amazon.com/s3/). Each table is processed following the following steps:
+As can be seen in the previous image, the pipeline takes the source data from 3 different places, processes the data and saves it locally in parquet format. Once all the data has been processed, they are uploaded to [Amazon S3](https://aws.amazon.com/s3/). Each table is processed using the following pattern:
 1. Raw data is read.
 2. The data is transformed.
 3. The correctness of the processed data is checked.
@@ -77,8 +77,8 @@ The main tools used in this project are:
 - [Pandas](https://pandas.pydata.org/): was chosen for the ease with which HTML tables are read.
 - [Amazon S3](https://aws.amazon.com/s3/): it was chosen because it is highly scalable, reliable, fast and inexpensive data storage.
   
-To run the pipeline, the following steps must be followed:
-1. Complete **dl.cfg** configuration file. It is recommended that the KEY and SECRET fields have the values of an IAM User that has only [AmazonS3FullAccess policy](https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-iam-awsmanpol.html) attached. Be careful not to put the entered values between single or double quotes.
+To run the pipeline, the next steps have to be followed:
+1. Complete **dl.cfg** configuration file. It is recommended that the KEY and SECRET fields have the values of an IAM User that has only [AmazonS3FullAccess policy](https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-iam-awsmanpol.html) attached. For the S3 field, it is necessary to pass the S3 bucket name. Be careful not to put the entered values between single or double quotes.
 2. Run the command from the project root.
 ```
 python -m etl
@@ -88,7 +88,7 @@ python -m etl
 
 #### The data was increased by 100x.
 
-For such a scenario, I would consider using an [Amazon EMR](https://aws.amazon.com/emr/) to run the ETL, and upload the data directly to the [Amazon S3](https://aws.amazon.com/s3/). For the S3 field, it is necessary to pass the S3 bucket name. Besides this, I would partition the boards. For example, I would partition the *country_temperature_evolution* table according to the country.
+For such a scenario, I would consider using an [Amazon EMR](https://aws.amazon.com/emr/) to run the ETL, and upload the data directly to the [Amazon S3](https://aws.amazon.com/s3/). Besides this, I would partition the tables. For example, I would partition the *country_temperature_evolution* table according to the country.
 
 #### The data populates a dashboard that must be updated on a daily basis by 7am every day.
 
